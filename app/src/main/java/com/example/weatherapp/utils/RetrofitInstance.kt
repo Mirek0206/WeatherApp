@@ -1,14 +1,15 @@
-import com.example.weatherapp.utils.Util
-import com.example.weatherapp.data.ApiInterface
+package com.example.weatherapp.utils
+
+import com.example.weatherapp.data.Api
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    val api: ApiInterface by lazy {
+    val api: Api by lazy {
         Retrofit.Builder()
-            .baseUrl(Util.base)
+            .baseUrl(Util.Base)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ApiInterface::class.java)
+            .create(Api::class.java)
     }
 }

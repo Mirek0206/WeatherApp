@@ -1,50 +1,25 @@
 package com.example.weatherapp
 
-import android.net.http.HttpException
+import MainWeatherFragment
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
-import RetrofitInstance
-import android.annotation.SuppressLint
 import com.example.weatherapp.databinding.ActivityMainBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.IOException
+import com.mkrdeveloper.weatherappexample.fragments.AdditionalWeatherInfoFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getCurrentWeather()
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun getCurrentWeather() {
-        GlobalScope.launch(Dispatchers.IO) {
-            val response = try {
-                RetrofitInstance.api.getCurrentWeather("London", "metric", "77f28f038e941285b2ced57658a7c712")
-            } catch (e: IOException) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(applicationContext, "app error ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-                return@launch
-            } catch (e: HttpException) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(applicationContext, "http error ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-                return@launch
-            }
-
-            if (response.isSuccessful && response.body()!=null){
-                withContext(Dispatchers.Main) {
-                    binding.tvTemp.text = "tem: ${response.body()!!.main.temp}"
-                }
-            }
+        if (savedInstanceState == null) {
+            // Wyświetlanie MainWeatherFragment
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, MainWeatherFragment())
+                .commit()
         }
+
     }
 }
