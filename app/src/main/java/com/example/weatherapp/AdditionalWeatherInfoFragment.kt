@@ -38,11 +38,12 @@ class AdditionalWeatherInfoFragment : Fragment() {
     }
 
     fun updateUI(weather: CurrentWeather?, pollution: PollutionData?) {
-        weather?.let {
-            updateWeatherUI(it)
-        }
-        pollution?.let {
-            updatePollutionUI(it)
+        this.weatherData = weather
+        this.pollutionData = pollution
+
+        if (isAdded && isVisible && _binding != null) {
+            weather?.let { updateWeatherUI(it) }
+            pollution?.let { updatePollutionUI(it) }
         }
     }
 
@@ -92,5 +93,10 @@ class AdditionalWeatherInfoFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateUI(weatherData, pollutionData)
     }
 }

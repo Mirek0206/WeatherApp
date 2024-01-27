@@ -25,21 +25,17 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val apiKey = getString(R.string.api_key)
             val weatherData = weatherDataRepository.getWeatherData(city, apiKey)
-            if (weatherData != null) {
-                val pollutionData = weatherDataRepository.getPollutionData(weatherData.coord.lat, weatherData.coord.lon, apiKey)
+            val pollutionData = weatherData?.let {
+                weatherDataRepository.getPollutionData(it.coord.lat, it.coord.lon, apiKey)
+            }
 
-                withContext(Dispatchers.Main) {
-                    val mainWeatherFragment = supportFragmentManager.findFragmentByTag("f0") as? MainWeatherFragment
-                    val additionalWeatherInfoFragment = supportFragmentManager.findFragmentByTag("f1") as? AdditionalWeatherInfoFragment
-
-                    mainWeatherFragment?.updateUI(weatherData)
-                    additionalWeatherInfoFragment?.updateUI(weatherData, pollutionData)
-
+            withContext(Dispatchers.Main) {
+                if (weatherData != null && pollutionData != null) {
+                    mainWeatherFragment.updateUI(weatherData)
+                    additionalWeatherInfoFragment.updateUI(weatherData, pollutionData)
                     saveLastSearchedCity(city)
-                }
-            } else {
-                withContext(Dispatchers.Main) {
-                    Log.d("MainActivity", "Nie udało się pobrać danych pogodowych dla miasta: $city")
+                } else {
+                    Log.d("MainActivity", "Nie udało się pobrać danych dla miasta: $city")
                 }
             }
         }
@@ -77,19 +73,22 @@ class MainActivity : AppCompatActivity() {
     private fun setupViewPager() {
         val pagerAdapter = ScreenSlidePagerAdapter(this)
         binding.viewPager.adapter = pagerAdapter
+
+        mainWeatherFragment = MainWeatherFragment().apply {
+            setWeatherDataRepository(weatherDataRepository)
+        }
+        additionalWeatherInfoFragment = AdditionalWeatherInfoFragment().apply {
+            setWeatherDataRepository(weatherDataRepository)
+        }
     }
 
     inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-        override fun getItemCount(): Int = 2  // Liczba fragmentów
+        override fun getItemCount(): Int = 2
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
-                0 -> MainWeatherFragment().apply {
-                    setWeatherDataRepository(weatherDataRepository)
-                }
-                else -> AdditionalWeatherInfoFragment().apply {
-                    setWeatherDataRepository(weatherDataRepository)
-                }
+                0 -> mainWeatherFragment
+                else -> additionalWeatherInfoFragment
             }
         }
     }
