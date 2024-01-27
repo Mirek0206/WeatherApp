@@ -27,7 +27,6 @@ interface Api {
     suspend fun getPollution(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
-        @Query("units") units : String,
         @Query("appid") apiKey : String
     ): Response<PollutionData>
 }
