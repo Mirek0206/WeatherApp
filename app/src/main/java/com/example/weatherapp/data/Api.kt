@@ -17,8 +17,8 @@ interface Api {
 
     @GET("forecast?")
     suspend fun getForecast(
-        @Query ("q") city: String,
-        @Query("units") units : String,
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double,
         @Query("appid") apiKey : String,
     ) :Response<Forecast>
 

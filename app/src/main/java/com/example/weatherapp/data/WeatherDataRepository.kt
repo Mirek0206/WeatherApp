@@ -2,6 +2,8 @@ package com.example.weatherapp.data
 
 import android.content.Context
 import android.util.Log
+import com.example.weatherapp.data.forecastModels.Forecast
+import com.example.weatherapp.data.forecastModels.ForecastData
 import com.example.weatherapp.data.models.CurrentWeather
 import com.example.weatherapp.data.pollutionModels.PollutionData
 import com.example.weatherapp.utils.RetrofitInstance
@@ -44,6 +46,22 @@ class WeatherDataRepository(private val context: Context) {
         }
     }
 
+    private suspend fun fetchForecastDataFromApi(lat: Double, lon: Double, apiKey: String): Forecast? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = RetrofitInstance.api.getForecast(lat, lon, apiKey)
+                if (response.isSuccessful) {
+                    response.body()
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                Log.d("MainActivity", "Wyjątek w fetchForecastDataFromApi: ${e.message}")
+                null
+            }
+        }
+    }
+
     suspend fun getWeatherData(city: String, apiKey: String): CurrentWeather? {
         val (currentWeatherFromFile, lastUpdateTime) = readWeatherDataFromFile()
         // Sprawdzenie, czy dane z pliku dotyczą szukanego miasta i czy są jeszcze aktualne
@@ -80,6 +98,26 @@ class WeatherDataRepository(private val context: Context) {
                 savePollutionDataToFile(pollutionDataJson)
             }
             pollutionDataFromApi
+        }
+    }
+
+    suspend fun getForecastData(lat: Double, lon: Double, apiKey: String): Forecast? {
+        val (forecastDataFromFile, lastUpdateTime) = readForecastDataFromFile()
+
+        val currentTime = System.currentTimeMillis() / 1000
+        val isDataValid = forecastDataFromFile != null &&
+                currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
+                forecastDataFromFile.city.coord.lat == lat && forecastDataFromFile.city.coord.lon == lon
+
+        return if (isDataValid) {
+            forecastDataFromFile
+        } else {
+            val forecastDataFromApi = fetchForecastDataFromApi(lat, lon, apiKey)
+            forecastDataFromApi?.let {
+                val forecastDataJson = Gson().toJson(it)
+                saveForecastDataToFile(forecastDataJson)
+            }
+            forecastDataFromApi
         }
     }
 
@@ -125,6 +163,27 @@ class WeatherDataRepository(private val context: Context) {
         return Pair(null, 0)
     }
 
+    private fun readForecastDataFromFile(): Pair<Forecast?, Long> {
+        try {
+            val fis = context.openFileInput("forecast_data.json")
+            val isr = InputStreamReader(fis)
+            val bufferedReader = BufferedReader(isr)
+            val stringBuilder = StringBuilder()
+            var text: String?
+            while (bufferedReader.readLine().also { text = it } != null) {
+                stringBuilder.append(text)
+            }
+            fis.close()
+            val fullData = JSONObject(stringBuilder.toString())
+            val forecastData = fullData.getString("forecastData")
+            val lastUpdateTime = JSONObject(forecastData).getLong("dt")
+            return Pair(Gson().fromJson(forecastData, Forecast::class.java), lastUpdateTime)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return Pair(null, 0)
+    }
+
     private fun saveWeatherDataToFile(weatherData: String) {
         try {
             val currentTimestamp = System.currentTimeMillis()
@@ -148,6 +207,21 @@ class WeatherDataRepository(private val context: Context) {
                 put("pollutionData", pollutionData)
             }
             val fos = context.openFileOutput("pollution_data.json", Context.MODE_PRIVATE)
+            fos.write(dataToSave.toString().toByteArray())
+            fos.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun saveForecastDataToFile(forecastData: String) {
+        try {
+            val currentTimestamp = System.currentTimeMillis()
+            val dataToSave = JSONObject().apply {
+                put("timestamp", currentTimestamp)
+                put("forecastData", forecastData)
+            }
+            val fos = context.openFileOutput("forecast_data.json", Context.MODE_PRIVATE)
             fos.write(dataToSave.toString().toByteArray())
             fos.close()
         } catch (e: IOException) {

@@ -19,7 +19,6 @@ class AdditionalWeatherInfoFragment : Fragment() {
     private var _binding: FragmentAdditionalWeatherInfoBinding? = null
     private val binding get() = _binding!!
     private lateinit var weatherDataRepository: WeatherDataRepository
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
     private var weatherData: CurrentWeather? = null
     private var pollutionData: PollutionData? = null
 

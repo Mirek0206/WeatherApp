@@ -14,6 +14,7 @@ import com.example.weatherapp.databinding.FragmentMainWeatherBinding
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 class MainWeatherFragment : Fragment() {
     private var _binding: FragmentMainWeatherBinding? = null
@@ -58,7 +59,7 @@ class MainWeatherFragment : Fragment() {
         this.currentWeatherData = weather
         if (weather != null && _binding != null) {
             binding.tvLocation.text = weather.name
-            binding.tvTemp.text = "${weather.main.temp}°C"
+            binding.tvTemp.text = "${weather.main.temp.roundToInt()}°C"
             binding.tvStatus.text = weather.weather.first().description
             binding.tvLatCoordTemp.text = "Lat: ${weather.coord.lat}"
             binding.tvLongCoordTemp.text = "Lon: ${weather.coord.lon}"
