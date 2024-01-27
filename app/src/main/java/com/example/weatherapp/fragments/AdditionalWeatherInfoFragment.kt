@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.example.weatherapp.fragments
 
 import android.annotation.SuppressLint
 import android.icu.text.SimpleDateFormat
@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.weatherapp.data.WeatherDataRepository
-import com.example.weatherapp.data.models.CurrentWeather
+import com.example.weatherapp.data.weatherModels.CurrentWeather
 import com.example.weatherapp.data.pollutionModels.PollutionData
 import com.example.weatherapp.databinding.FragmentAdditionalWeatherInfoBinding
 import kotlinx.coroutines.*

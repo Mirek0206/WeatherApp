@@ -3,12 +3,15 @@ package com.example.weatherapp
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.weatherapp.data.WeatherDataRepository
 import com.example.weatherapp.databinding.ActivityMainBinding
+import com.example.weatherapp.fragments.AdditionalWeatherInfoFragment
+import com.example.weatherapp.fragments.ForecastFragment
+import com.example.weatherapp.fragments.MainWeatherFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,7 +43,7 @@ class MainActivity : AppCompatActivity() {
                     forecastFragment.updateUI(forecastData)
                     saveLastSearchedCity(city)
                 } else {
-                    Log.d("MainActivity", "Nie udało się pobrać danych dla miasta: $city")
+                    Toast.makeText(this@MainActivity, "Brak aktualnych danych - problem z połączeniem", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -77,6 +80,7 @@ class MainActivity : AppCompatActivity() {
             updateWeatherAndPollutionData(lastSearchedCity)
         }
     }
+
 
     private fun setupViewPager() {
         val pagerAdapter = ScreenSlidePagerAdapter(this)

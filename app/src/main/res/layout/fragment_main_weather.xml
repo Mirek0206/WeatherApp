@@ -17,14 +17,13 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.12" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/linearLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="1dp"
         android:layout_marginEnd="1dp"
         android:gravity="center_horizontal"
-        android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/glMainLocation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,41 +31,67 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardSearch"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp"
             app:cardBackgroundColor="@color/semi_transparent"
             app:cardCornerRadius="10dp"
-            app:cardElevation="8dp">
+            app:cardElevation="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/imgAddToFavorites"
+            app:layout_constraintEnd_toEndOf="@+id/tv_location"
+            app:layout_constraintStart_toStartOf="@+id/tv_location"
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/searchView"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:iconifiedByDefault="false"
                 app:queryHint="Search here...." />
 
         </androidx.cardview.widget.CardView>
 
+        <ImageView
+            android:id="@+id/imgAddToFavorites"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/icons_star"
+            app:layout_constraintBottom_toBottomOf="@+id/tv_location"
+            app:layout_constraintEnd_toEndOf="@+id/tv_location"
+            app:layout_constraintTop_toTopOf="@+id/tv_location"
+            android:contentDescription="@string/add_to_favorites"/>
+
         <TextView
             android:id="@+id/tv_location"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="361dp"
+            android:layout_height="42dp"
             android:gravity="center_horizontal"
             android:text="@string/location"
             android:textColor="@color/black"
             android:textSize="34sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/tv_update_time"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/tv_update_time"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="189dp"
             android:gravity="center_horizontal"
             android:text="@string/current_time"
             android:textColor="@color/black"
-            android:textSize="20sp" />
-    </LinearLayout>
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="@+id/tv_location"
+            app:layout_constraintStart_toStartOf="@+id/tv_location"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <androidx.constraintlayout.widget.Guideline

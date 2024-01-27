@@ -1,6 +1,6 @@
 package com.example.weatherapp.data
 
-import com.example.weatherapp.data.models.CurrentWeather
+import com.example.weatherapp.data.weatherModels.CurrentWeather
 import com.example.weatherapp.data.forecastModels.Forecast
 import com.example.weatherapp.data.pollutionModels.PollutionData
 import retrofit2.Response

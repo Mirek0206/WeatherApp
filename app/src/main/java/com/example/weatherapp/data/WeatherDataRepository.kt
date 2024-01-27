@@ -3,8 +3,7 @@ package com.example.weatherapp.data
 import android.content.Context
 import android.util.Log
 import com.example.weatherapp.data.forecastModels.Forecast
-import com.example.weatherapp.data.forecastModels.ForecastData
-import com.example.weatherapp.data.models.CurrentWeather
+import com.example.weatherapp.data.weatherModels.CurrentWeather
 import com.example.weatherapp.data.pollutionModels.PollutionData
 import com.example.weatherapp.utils.RetrofitInstance
 import com.google.gson.Gson
