@@ -3,6 +3,7 @@ package com.example.weatherapp
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -36,6 +37,10 @@ class MainActivity : AppCompatActivity() {
                 weatherDataRepository.getForecastData(it.coord.lat, it.coord.lon, apiKey)
             }
 
+            Log.d("MainActivity", "Weather data: $weatherData")
+            Log.d("MainActivity", "Pollution data: $pollutionData")
+            Log.d("MainActivity", "Forecast data: $forecastData")
+
             withContext(Dispatchers.Main) {
                 if (weatherData != null && pollutionData != null && forecastData != null) {
                     mainWeatherFragment.updateUI(weatherData)
@@ -52,6 +57,11 @@ class MainActivity : AppCompatActivity() {
     private fun saveLastSearchedCity(city: String) {
         val sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
         sharedPreferences.edit().putString("lastSearchedCity", city).apply()
+    }
+
+    private fun getLastSearchedCityOrDefault(): String {
+        val sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("lastSearchedCity", "Warsaw") ?: "Warsaw"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +86,8 @@ class MainActivity : AppCompatActivity() {
         // Ustawienie ViewPager i aktualizacja danych pogodowych
         if (savedInstanceState == null) {
             setupViewPager()
-            val lastSearchedCity = weatherDataRepository.getLastSearchedCityOrDefault()
+            val lastSearchedCity = getLastSearchedCityOrDefault()
+            Log.d("MainActivity", lastSearchedCity)
             updateWeatherAndPollutionData(lastSearchedCity)
         }
     }
@@ -104,7 +115,7 @@ class MainActivity : AppCompatActivity() {
             return when (position) {
                 0 -> mainWeatherFragment
                 1 -> additionalWeatherInfoFragment
-                2 -> forecastFragment // Dodanie ForecastFragment
+                2 -> forecastFragment
                 else -> throw IllegalStateException("Invalid position")
             }
         }

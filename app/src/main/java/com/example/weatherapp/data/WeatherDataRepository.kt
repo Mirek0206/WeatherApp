@@ -62,6 +62,7 @@ class WeatherDataRepository(private val context: Context) {
     }
 
     suspend fun getWeatherData(city: String, apiKey: String): CurrentWeather? {
+
         val (currentWeatherFromFile, lastUpdateTime) = readWeatherDataFromFile()
         // Sprawdzenie, czy dane z pliku dotyczą szukanego miasta i czy są jeszcze aktualne
         val currentTime = System.currentTimeMillis() / 1000 // Konwersja na sekundy
@@ -69,6 +70,7 @@ class WeatherDataRepository(private val context: Context) {
                 currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
                 currentWeatherFromFile.name.equals(city, ignoreCase = true)
         return if (isDataValid) {
+            Log.d("MainActivity", "Weather data valid")
             currentWeatherFromFile
         } else {
             val currentWeatherFromApi = fetchWeatherDataFromApi(city, apiKey)
@@ -82,13 +84,14 @@ class WeatherDataRepository(private val context: Context) {
 
     suspend fun getPollutionData(lat: Double, lon: Double, apiKey: String): PollutionData? {
         val (pollutionDataFromFile, lastUpdateTime) = readPollutionDataFromFile()
-
         val currentTime = System.currentTimeMillis() / 1000
         val isDataValid = pollutionDataFromFile != null &&
                 currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
-                pollutionDataFromFile.coord.lat == lat && pollutionDataFromFile.coord.lon == lon
+                pollutionDataFromFile.coord.lat.equals(lat) &&
+                pollutionDataFromFile.coord.lon.equals(lon)
 
         return if (isDataValid) {
+            Log.d("MainActivity", "Pollution data valid")
             pollutionDataFromFile
         } else {
             val pollutionDataFromApi = fetchPollutionDataFromApi(lat, lon, apiKey)
@@ -106,9 +109,11 @@ class WeatherDataRepository(private val context: Context) {
         val currentTime = System.currentTimeMillis() / 1000
         val isDataValid = forecastDataFromFile != null &&
                 currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
-                forecastDataFromFile.city.coord.lat == lat && forecastDataFromFile.city.coord.lon == lon
+                forecastDataFromFile.city.coord.lat.equals(lat) &&
+                forecastDataFromFile.city.coord.lon.equals(lon)
 
         return if (isDataValid) {
+            Log.d("MainActivity", "Forecast data valid")
             forecastDataFromFile
         } else {
             val forecastDataFromApi = fetchForecastDataFromApi(lat, lon, apiKey)
@@ -133,7 +138,7 @@ class WeatherDataRepository(private val context: Context) {
             fis.close()
             val fullData = JSONObject(stringBuilder.toString())
             val weatherData = fullData.getString("weatherData")
-            val lastUpdateTime = JSONObject(weatherData).getLong("dt")
+            val lastUpdateTime = fullData.getLong("timestamp")
             return Pair(Gson().fromJson(weatherData, CurrentWeather::class.java), lastUpdateTime)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -154,7 +159,7 @@ class WeatherDataRepository(private val context: Context) {
             fis.close()
             val fullData = JSONObject(stringBuilder.toString())
             val pollutionData = fullData.getString("pollutionData")
-            val lastUpdateTime = JSONObject(pollutionData).getLong("dt")
+            val lastUpdateTime = fullData.getLong("timestamp")
             return Pair(Gson().fromJson(pollutionData, PollutionData::class.java), lastUpdateTime)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -175,7 +180,7 @@ class WeatherDataRepository(private val context: Context) {
             fis.close()
             val fullData = JSONObject(stringBuilder.toString())
             val forecastData = fullData.getString("forecastData")
-            val lastUpdateTime = JSONObject(forecastData).getLong("dt")
+            val lastUpdateTime = fullData.getLong("timestamp")
             return Pair(Gson().fromJson(forecastData, Forecast::class.java), lastUpdateTime)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -226,10 +231,5 @@ class WeatherDataRepository(private val context: Context) {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-    }
-
-    fun getLastSearchedCityOrDefault(): String {
-        val sharedPreferences = context.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
-        return sharedPreferences.getString("lastSearchedCity", "Warsaw") ?: "Warsaw"
     }
 }
