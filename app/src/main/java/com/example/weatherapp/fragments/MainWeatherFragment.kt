@@ -21,11 +21,16 @@ import java.util.*
 import kotlin.math.roundToInt
 
 class MainWeatherFragment : Fragment() {
+    enum class TempUnit { CELSIUS, FAHRENHEIT, KELVIN }
+
     private var _binding: FragmentMainWeatherBinding? = null
     private val binding get() = _binding!!
     private lateinit var weatherDataRepository: WeatherDataRepository
     private var currentWeatherData: CurrentWeather? = null
     private var favoritesDialog: AlertDialog? = null
+    private var currentTempUnit = TempUnit.CELSIUS
+
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMainWeatherBinding.inflate(inflater, container, false)
@@ -46,6 +51,15 @@ class MainWeatherFragment : Fragment() {
             val currentLocation = getCurrentLocationFromTextView()
             // Przełącz ulubione
             toggleFavorite(currentLocation)
+        }
+
+        // Ustawienie OnClickListener na tv_update_time
+        binding.tvUpdateTime.setOnClickListener {
+            refreshData()
+        }
+
+        binding.tvTemp.setOnClickListener {
+            toggleTemperatureUnit()
         }
 
         // Zaktualizuj bieżącą lokalizację wartością z TextView
@@ -82,7 +96,7 @@ class MainWeatherFragment : Fragment() {
         this.currentWeatherData = weather
         if (weather != null && _binding != null) {
             binding.tvLocation.text = weather.name
-            binding.tvTemp.text = "${weather.main.temp.roundToInt()}°C"
+            updateTemperatureDisplay(weather.main.temp, currentTempUnit)
             binding.tvStatus.text = weather.weather.first().description
             binding.tvLatCoordTemp.text = "Lat: ${weather.coord.lat}"
             binding.tvLongCoordTemp.text = "Lon: ${weather.coord.lon}"
@@ -172,5 +186,50 @@ class MainWeatherFragment : Fragment() {
         favoritesDialog?.listView?.isFocusable = false
         favoritesDialog?.listView?.isFocusableInTouchMode = false
         favoritesDialog?.show()
+    }
+
+    private fun refreshData() {
+        val currentLocation = getCurrentLocationFromTextView()
+        if (currentLocation.isNotBlank() && ::weatherDataRepository.isInitialized) {
+            (activity as? MainActivity)?.updateWeatherAndPollutionData(currentLocation)
+        } else {
+            Toast.makeText(requireContext(), "Nie można odświeżyć danych: brak lokalizacji", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun toggleTemperatureUnit() {
+        currentWeatherData?.main?.temp?.let { tempInCelsius ->
+            currentTempUnit = when (currentTempUnit) {
+                TempUnit.CELSIUS -> {
+                    updateTemperatureDisplay(celsiusToFahrenheit(tempInCelsius), TempUnit.FAHRENHEIT)
+                    TempUnit.FAHRENHEIT
+                }
+                TempUnit.FAHRENHEIT -> {
+                    updateTemperatureDisplay(celsiusToKelvin(tempInCelsius), TempUnit.KELVIN)
+                    TempUnit.KELVIN
+                }
+                TempUnit.KELVIN -> {
+                    updateTemperatureDisplay(tempInCelsius, TempUnit.CELSIUS)
+                    TempUnit.CELSIUS
+                }
+            }
+        }
+    }
+
+    private fun celsiusToFahrenheit(celsius: Double): Double {
+        return (celsius * 9/5) + 32
+    }
+
+    private fun celsiusToKelvin(celsius: Double): Double {
+        return celsius + 273.15
+    }
+
+    private fun updateTemperatureDisplay(temperature: Double, unit: TempUnit) {
+        val unitSymbol = when (unit) {
+            TempUnit.CELSIUS -> "°C"
+            TempUnit.FAHRENHEIT -> "°F"
+            TempUnit.KELVIN -> "K"
+        }
+        binding.tvTemp.text = String.format(Locale.getDefault(), "%.1f%s", temperature, unitSymbol)
     }
 }

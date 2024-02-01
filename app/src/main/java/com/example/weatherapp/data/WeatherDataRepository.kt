@@ -64,10 +64,9 @@ class WeatherDataRepository(private val context: Context) {
     suspend fun getWeatherData(city: String, apiKey: String): CurrentWeather? {
 
         val (currentWeatherFromFile, lastUpdateTime) = readWeatherDataFromFile()
-        // Sprawdzenie, czy dane z pliku dotyczą szukanego miasta i czy są jeszcze aktualne
-        val currentTime = System.currentTimeMillis() / 1000 // Konwersja na sekundy
+        val currentTime = System.currentTimeMillis()
         val isDataValid = currentWeatherFromFile != null &&
-                currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
+                currentTime - lastUpdateTime < updateIntervalMillis &&
                 currentWeatherFromFile.name.equals(city, ignoreCase = true)
         return if (isDataValid) {
             Log.d("MainActivity", "Weather data valid")
@@ -84,9 +83,9 @@ class WeatherDataRepository(private val context: Context) {
 
     suspend fun getPollutionData(lat: Double, lon: Double, apiKey: String): PollutionData? {
         val (pollutionDataFromFile, lastUpdateTime) = readPollutionDataFromFile()
-        val currentTime = System.currentTimeMillis() / 1000
+        val currentTime = System.currentTimeMillis()
         val isDataValid = pollutionDataFromFile != null &&
-                currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
+                currentTime - lastUpdateTime < updateIntervalMillis &&
                 pollutionDataFromFile.coord.lat.equals(lat) &&
                 pollutionDataFromFile.coord.lon.equals(lon)
 
@@ -99,6 +98,7 @@ class WeatherDataRepository(private val context: Context) {
                 val pollutionDataJson = Gson().toJson(it)
                 savePollutionDataToFile(pollutionDataJson)
             }
+            Log.d("MainActivity", pollutionDataFromApi.toString())
             pollutionDataFromApi
         }
     }
@@ -106,9 +106,9 @@ class WeatherDataRepository(private val context: Context) {
     suspend fun getForecastData(lat: Double, lon: Double, apiKey: String): Forecast? {
         val (forecastDataFromFile, lastUpdateTime) = readForecastDataFromFile()
 
-        val currentTime = System.currentTimeMillis() / 1000
+        val currentTime = System.currentTimeMillis()
         val isDataValid = forecastDataFromFile != null &&
-                currentTime - lastUpdateTime < updateIntervalMillis / 1000 &&
+                currentTime - lastUpdateTime < updateIntervalMillis &&
                 forecastDataFromFile.city.coord.lat.equals(lat) &&
                 forecastDataFromFile.city.coord.lon.equals(lon)
 

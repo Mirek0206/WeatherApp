@@ -1,6 +1,7 @@
 package com.example.weatherapp
 
 import android.content.Context
+import android.net.ConnectivityManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -48,7 +49,13 @@ class MainActivity : AppCompatActivity() {
                     forecastFragment.updateUI(forecastData)
                     saveLastSearchedCity(city)
                 } else {
-                    Toast.makeText(this@MainActivity, "Brak aktualnych danych - problem z połączeniem", Toast.LENGTH_LONG).show()
+                    if (!isNetworkAvailable()) {
+                        Toast.makeText(this@MainActivity, "Brak danych - brak internetu!", Toast.LENGTH_LONG).show()
+                    }
+                    else
+                    {
+                        Toast.makeText(this@MainActivity, "Brak danych - problem z serwisem OpenWeather!", Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
@@ -120,4 +127,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetworkInfo = connectivityManager.activeNetworkInfo
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected
+    }
+
 }
