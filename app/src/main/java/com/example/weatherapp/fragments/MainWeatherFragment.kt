@@ -10,25 +10,34 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.example.weatherapp.MainActivity
 import com.example.weatherapp.data.WeatherDataRepository
 import com.example.weatherapp.data.weatherModels.CurrentWeather
 import com.example.weatherapp.databinding.FragmentMainWeatherBinding
+import com.example.weatherapp.data.SharedViewModel
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.roundToInt
 
 class MainWeatherFragment : Fragment() {
-    enum class TempUnit { CELSIUS, FAHRENHEIT, KELVIN }
+    enum class TempUnit(val symbol: String) {
+        CELSIUS("°C"),
+        FAHRENHEIT("°F"),
+        KELVIN("K")
+    }
 
+    private lateinit var weatherDataRepository: WeatherDataRepository
+    private lateinit var sharedViewModel: SharedViewModel
     private var _binding: FragmentMainWeatherBinding? = null
     private val binding get() = _binding!!
-    private lateinit var weatherDataRepository: WeatherDataRepository
     private var currentWeatherData: CurrentWeather? = null
     private var favoritesDialog: AlertDialog? = null
     private var currentTempUnit = TempUnit.CELSIUS
+    private var originalTempInCelsius: Double = 0.0
+
+
 
 
 
@@ -82,26 +91,25 @@ class MainWeatherFragment : Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean = false
         })
 
-        searchView.setOnQueryTextFocusChangeListener { v, hasFocus ->
+        searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 showFavoritesList()
             }
         }
     }
 
-
-
     @SuppressLint("SetTextI18n")
     fun updateUI(weather: CurrentWeather?) {
         this.currentWeatherData = weather
         if (weather != null && _binding != null) {
+            val updateDate = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(weather.dt * 1000L))
+            originalTempInCelsius = weather.main.temp // Zakładamy, że temp jest w Celsjuszach
+            updateTemperatureDisplay(originalTempInCelsius, currentTempUnit)
+
             binding.tvLocation.text = weather.name
-            updateTemperatureDisplay(weather.main.temp, currentTempUnit)
             binding.tvStatus.text = weather.weather.first().description
             binding.tvLatCoordTemp.text = "Lat: ${weather.coord.lat}"
             binding.tvLongCoordTemp.text = "Lon: ${weather.coord.lon}"
-
-            val updateDate = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(weather.dt * 1000L))
             binding.tvUpdateTime.text = "Last update: $updateDate"
 
             val iconCode = weather.weather.first().icon
@@ -198,22 +206,12 @@ class MainWeatherFragment : Fragment() {
     }
 
     private fun toggleTemperatureUnit() {
-        currentWeatherData?.main?.temp?.let { tempInCelsius ->
-            currentTempUnit = when (currentTempUnit) {
-                TempUnit.CELSIUS -> {
-                    updateTemperatureDisplay(celsiusToFahrenheit(tempInCelsius), TempUnit.FAHRENHEIT)
-                    TempUnit.FAHRENHEIT
-                }
-                TempUnit.FAHRENHEIT -> {
-                    updateTemperatureDisplay(celsiusToKelvin(tempInCelsius), TempUnit.KELVIN)
-                    TempUnit.KELVIN
-                }
-                TempUnit.KELVIN -> {
-                    updateTemperatureDisplay(tempInCelsius, TempUnit.CELSIUS)
-                    TempUnit.CELSIUS
-                }
-            }
+        currentTempUnit = when (currentTempUnit) {
+            TempUnit.CELSIUS -> TempUnit.FAHRENHEIT
+            TempUnit.FAHRENHEIT -> TempUnit.KELVIN
+            TempUnit.KELVIN -> TempUnit.CELSIUS
         }
+        sharedViewModel.tempUnit.value = currentTempUnit
     }
 
     private fun celsiusToFahrenheit(celsius: Double): Double {
@@ -225,11 +223,21 @@ class MainWeatherFragment : Fragment() {
     }
 
     private fun updateTemperatureDisplay(temperature: Double, unit: TempUnit) {
-        val unitSymbol = when (unit) {
-            TempUnit.CELSIUS -> "°C"
-            TempUnit.FAHRENHEIT -> "°F"
-            TempUnit.KELVIN -> "K"
+        val convertedTemp = when (unit) {
+            TempUnit.CELSIUS -> temperature
+            TempUnit.FAHRENHEIT -> celsiusToFahrenheit(temperature)
+            TempUnit.KELVIN -> celsiusToKelvin(temperature)
         }
-        binding.tvTemp.text = String.format(Locale.getDefault(), "%.1f%s", temperature, unitSymbol)
+        binding.tvTemp.text = String.format(Locale.getDefault(), "%.1f%s", convertedTemp, unit.symbol)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedViewModel = ViewModelProvider(requireActivity())[SharedViewModel::class.java]
+
+        sharedViewModel.tempUnit.observe(this, androidx.lifecycle.Observer {
+            currentTempUnit = it
+            updateUI(currentWeatherData)
+        })
     }
 }

@@ -8,12 +8,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.weatherapp.data.WeatherDataRepository
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.fragments.AdditionalWeatherInfoFragment
 import com.example.weatherapp.fragments.ForecastFragment
 import com.example.weatherapp.fragments.MainWeatherFragment
+import com.example.weatherapp.data.SharedViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,6 +24,7 @@ import kotlinx.coroutines.withContext
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var weatherDataRepository: WeatherDataRepository
+    private lateinit var sharedViewModel: SharedViewModel
 
     lateinit var mainWeatherFragment: MainWeatherFragment
     lateinit var additionalWeatherInfoFragment: AdditionalWeatherInfoFragment
@@ -44,9 +47,12 @@ class MainActivity : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 if (weatherData != null && pollutionData != null && forecastData != null) {
+                    val currentTempUnit = sharedViewModel.tempUnit.value ?: MainWeatherFragment.TempUnit.CELSIUS
+
                     mainWeatherFragment.updateUI(weatherData)
                     additionalWeatherInfoFragment.updateUI(weatherData, pollutionData)
-                    forecastFragment.updateUI(forecastData)
+                    forecastFragment.updateUI(forecastData, currentTempUnit)
+
                     saveLastSearchedCity(city)
                 } else {
                     if (!isNetworkAvailable()) {
@@ -73,6 +79,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedViewModel = ViewModelProvider(this).get(SharedViewModel::class.java)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

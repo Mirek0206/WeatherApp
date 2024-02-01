@@ -48,7 +48,7 @@ class WeatherDataRepository(private val context: Context) {
     private suspend fun fetchForecastDataFromApi(lat: Double, lon: Double, apiKey: String): Forecast? {
         return withContext(Dispatchers.IO) {
             try {
-                val response = RetrofitInstance.api.getForecast(lat, lon, apiKey)
+                val response = RetrofitInstance.api.getForecast(lat, lon, apiKey, "standard")
                 if (response.isSuccessful) {
                     response.body()
                 } else {
