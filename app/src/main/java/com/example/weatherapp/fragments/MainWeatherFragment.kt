@@ -57,7 +57,7 @@ class MainWeatherFragment : Fragment() {
 
         binding.imgAddToFavorites.setOnClickListener {
             // Pobierz aktualną lokalizację
-            val currentLocation = getCurrentLocationFromTextView()
+            val currentLocation = (activity as MainActivity).getLastSearchedCityOrDefault()
             // Przełącz ulubione
             toggleFavorite(currentLocation)
         }
@@ -70,9 +70,6 @@ class MainWeatherFragment : Fragment() {
         binding.tvTemp.setOnClickListener {
             toggleTemperatureUnit()
         }
-
-        // Zaktualizuj bieżącą lokalizację wartością z TextView
-        saveCurrentLocation(getCurrentLocationFromTextView())
     }
 
     private fun setupSearchView() {
@@ -133,20 +130,6 @@ class MainWeatherFragment : Fragment() {
         updateUI(currentWeatherData)
     }
 
-
-    private fun getCurrentLocationFromTextView(): String {
-        // Pobiera nazwę miejscowości z TextView i zapisuje jako bieżącą lokalizację
-        return binding.tvLocation.text.toString()
-    }
-
-    private fun saveCurrentLocation(location: String) {
-        val sharedPreferences = activity?.getSharedPreferences("WeatherApp", Context.MODE_PRIVATE) ?: return
-        with(sharedPreferences.edit()) {
-            putString("currentLocation", location)
-            apply()
-        }
-    }
-
     @SuppressLint("MutatingSharedPrefs")
     private fun toggleFavorite(currentLocation: String) {
         // Sprawdź, czy currentLocation nie jest wartością domyślną
@@ -197,12 +180,13 @@ class MainWeatherFragment : Fragment() {
     }
 
     private fun refreshData() {
-        val currentLocation = getCurrentLocationFromTextView()
+        val currentLocation = (activity as MainActivity).getLastSearchedCityOrDefault()
         if (currentLocation.isNotBlank() && ::weatherDataRepository.isInitialized) {
-            (activity as? MainActivity)?.updateWeatherAndPollutionData(currentLocation)
-        } else {
-            Toast.makeText(requireContext(), "Nie można odświeżyć danych: brak lokalizacji", Toast.LENGTH_SHORT).show()
-        }
+            (activity as MainActivity).updateWeatherAndPollutionData(currentLocation)
+            (activity as MainActivity).saveLastSearchedCity(currentLocation) // Użyj metody z MainActivity
+            } else {
+                Toast.makeText(requireContext(), "Nie można odświeżyć danych: brak lokalizacji", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun toggleTemperatureUnit() {

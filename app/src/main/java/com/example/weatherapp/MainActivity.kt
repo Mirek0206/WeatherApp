@@ -67,12 +67,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveLastSearchedCity(city: String) {
+    fun saveLastSearchedCity(city: String) {
         val sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
         sharedPreferences.edit().putString("lastSearchedCity", city).apply()
     }
 
-    private fun getLastSearchedCityOrDefault(): String {
+    fun getLastSearchedCityOrDefault(): String {
         val sharedPreferences = getSharedPreferences("WeatherApp", Context.MODE_PRIVATE)
         return sharedPreferences.getString("lastSearchedCity", "Warsaw") ?: "Warsaw"
     }
