@@ -62,12 +62,12 @@ class WeatherDataRepository(private val context: Context) {
     }
 
     suspend fun getWeatherData(city: String, apiKey: String, forceUpdate: Boolean = false): CurrentWeather? {
-
-        val (currentWeatherFromFile, lastUpdateTime) = readWeatherDataFromFile()
+        val (currentWeatherFromFile, lastUpdateTime, cityName) = readWeatherDataFromFile()
         val currentTime = System.currentTimeMillis()
         val isDataValid = !forceUpdate && currentWeatherFromFile != null &&
                 currentTime - lastUpdateTime < updateIntervalMillis &&
-                currentWeatherFromFile.name.equals(city, ignoreCase = true)
+                cityName.equals(city, ignoreCase = true)
+
         return if (isDataValid) {
             Log.d("MainActivity", "Weather data valid")
             currentWeatherFromFile
@@ -75,7 +75,7 @@ class WeatherDataRepository(private val context: Context) {
             val currentWeatherFromApi = fetchWeatherDataFromApi(city, apiKey)
             currentWeatherFromApi?.let {
                 val weatherDataJson = Gson().toJson(it)
-                saveWeatherDataToFile(weatherDataJson)
+                saveWeatherDataToFile(weatherDataJson, city)
             }
             currentWeatherFromApi
         }
@@ -124,7 +124,7 @@ class WeatherDataRepository(private val context: Context) {
         }
     }
 
-    private fun readWeatherDataFromFile(): Pair<CurrentWeather?, Long> {
+    private fun readWeatherDataFromFile(): Triple<CurrentWeather?, Long, String?> {
         try {
             val fis = context.openFileInput("weather_data.json")
             val isr = InputStreamReader(fis)
@@ -138,11 +138,12 @@ class WeatherDataRepository(private val context: Context) {
             val fullData = JSONObject(stringBuilder.toString())
             val weatherData = fullData.getString("weatherData")
             val lastUpdateTime = fullData.getLong("timestamp")
-            return Pair(Gson().fromJson(weatherData, CurrentWeather::class.java), lastUpdateTime)
+            val cityName = fullData.optString("cityName") // Odczyt nazwy miasta
+            return Triple(Gson().fromJson(weatherData, CurrentWeather::class.java), lastUpdateTime, cityName)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return Pair(null, 0)
+        return Triple(null, 0, null)
     }
 
     private fun readPollutionDataFromFile(): Pair<PollutionData?, Long> {
@@ -187,12 +188,13 @@ class WeatherDataRepository(private val context: Context) {
         return Pair(null, 0)
     }
 
-    private fun saveWeatherDataToFile(weatherData: String) {
+    private fun saveWeatherDataToFile(weatherData: String, cityName: String) {
         try {
             val currentTimestamp = System.currentTimeMillis()
             val dataToSave = JSONObject().apply {
                 put("timestamp", currentTimestamp)
                 put("weatherData", weatherData)
+                put("cityName", cityName)
             }
             val fos = context.openFileOutput("weather_data.json", Context.MODE_PRIVATE)
             fos.write(dataToSave.toString().toByteArray())

@@ -167,7 +167,7 @@ class MainWeatherFragment : Fragment() {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Wybierz ulubioną miejscowość")
 
-        builder.setItems(favoritesList.toTypedArray()) { dialog, which ->
+        builder.setItems(favoritesList.toTypedArray()) { _, which ->
             val selectedLocation = favoritesList[which]
             binding.searchView.setQuery(selectedLocation, true)
             favoritesDialog?.dismiss()
