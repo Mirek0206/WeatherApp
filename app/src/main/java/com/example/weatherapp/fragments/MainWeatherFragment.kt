@@ -182,8 +182,7 @@ class MainWeatherFragment : Fragment() {
     private fun refreshData() {
         val currentLocation = (activity as MainActivity).getLastSearchedCityOrDefault()
         if (currentLocation.isNotBlank() && ::weatherDataRepository.isInitialized) {
-            (activity as MainActivity).updateWeatherAndPollutionData(currentLocation)
-            (activity as MainActivity).saveLastSearchedCity(currentLocation) // Użyj metody z MainActivity
+            (activity as MainActivity).updateWeatherAndPollutionData(currentLocation, true)
             } else {
                 Toast.makeText(requireContext(), "Nie można odświeżyć danych: brak lokalizacji", Toast.LENGTH_SHORT).show()
             }

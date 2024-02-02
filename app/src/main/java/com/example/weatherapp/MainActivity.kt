@@ -30,15 +30,15 @@ class MainActivity : AppCompatActivity() {
     lateinit var additionalWeatherInfoFragment: AdditionalWeatherInfoFragment
     lateinit var forecastFragment: ForecastFragment
 
-    fun updateWeatherAndPollutionData(city: String) {
+    fun updateWeatherAndPollutionData(city: String, forceUpdate: Boolean = false) {
         CoroutineScope(Dispatchers.IO).launch {
             val apiKey = getString(R.string.api_key)
-            val weatherData = weatherDataRepository.getWeatherData(city, apiKey)
+            val weatherData = weatherDataRepository.getWeatherData(city, apiKey, forceUpdate)
             val pollutionData = weatherData?.let {
-                weatherDataRepository.getPollutionData(it.coord.lat, it.coord.lon, apiKey)
+                weatherDataRepository.getPollutionData(it.coord.lat, it.coord.lon, apiKey, forceUpdate)
             }
             val forecastData = weatherData?.let {
-                weatherDataRepository.getForecastData(it.coord.lat, it.coord.lon, apiKey)
+                weatherDataRepository.getForecastData(it.coord.lat, it.coord.lon, apiKey, forceUpdate)
             }
 
             Log.d("MainActivity", "Weather data: $weatherData")

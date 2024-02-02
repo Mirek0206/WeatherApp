@@ -61,11 +61,11 @@ class WeatherDataRepository(private val context: Context) {
         }
     }
 
-    suspend fun getWeatherData(city: String, apiKey: String): CurrentWeather? {
+    suspend fun getWeatherData(city: String, apiKey: String, forceUpdate: Boolean = false): CurrentWeather? {
 
         val (currentWeatherFromFile, lastUpdateTime) = readWeatherDataFromFile()
         val currentTime = System.currentTimeMillis()
-        val isDataValid = currentWeatherFromFile != null &&
+        val isDataValid = !forceUpdate && currentWeatherFromFile != null &&
                 currentTime - lastUpdateTime < updateIntervalMillis &&
                 currentWeatherFromFile.name.equals(city, ignoreCase = true)
         return if (isDataValid) {
@@ -81,10 +81,10 @@ class WeatherDataRepository(private val context: Context) {
         }
     }
 
-    suspend fun getPollutionData(lat: Double, lon: Double, apiKey: String): PollutionData? {
+    suspend fun getPollutionData(lat: Double, lon: Double, apiKey: String, forceUpdate: Boolean = false): PollutionData? {
         val (pollutionDataFromFile, lastUpdateTime) = readPollutionDataFromFile()
         val currentTime = System.currentTimeMillis()
-        val isDataValid = pollutionDataFromFile != null &&
+        val isDataValid = !forceUpdate && pollutionDataFromFile != null &&
                 currentTime - lastUpdateTime < updateIntervalMillis &&
                 pollutionDataFromFile.coord.lat.equals(lat) &&
                 pollutionDataFromFile.coord.lon.equals(lon)
@@ -98,16 +98,15 @@ class WeatherDataRepository(private val context: Context) {
                 val pollutionDataJson = Gson().toJson(it)
                 savePollutionDataToFile(pollutionDataJson)
             }
-            Log.d("MainActivity", pollutionDataFromApi.toString())
             pollutionDataFromApi
         }
     }
 
-    suspend fun getForecastData(lat: Double, lon: Double, apiKey: String): Forecast? {
+    suspend fun getForecastData(lat: Double, lon: Double, apiKey: String, forceUpdate: Boolean = false): Forecast? {
         val (forecastDataFromFile, lastUpdateTime) = readForecastDataFromFile()
 
         val currentTime = System.currentTimeMillis()
-        val isDataValid = forecastDataFromFile != null &&
+        val isDataValid = !forceUpdate && forecastDataFromFile != null &&
                 currentTime - lastUpdateTime < updateIntervalMillis &&
                 forecastDataFromFile.city.coord.lat.equals(lat) &&
                 forecastDataFromFile.city.coord.lon.equals(lon)
