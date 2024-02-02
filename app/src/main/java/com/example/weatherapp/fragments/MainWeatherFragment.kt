@@ -37,10 +37,6 @@ class MainWeatherFragment : Fragment() {
     private var currentTempUnit = TempUnit.CELSIUS
     private var originalTempInCelsius: Double = 0.0
 
-
-
-
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMainWeatherBinding.inflate(inflater, container, false)
         return binding.root
@@ -218,9 +214,9 @@ class MainWeatherFragment : Fragment() {
         super.onCreate(savedInstanceState)
         sharedViewModel = ViewModelProvider(requireActivity())[SharedViewModel::class.java]
 
-        sharedViewModel.tempUnit.observe(this, androidx.lifecycle.Observer {
+        sharedViewModel.tempUnit.observe(this) {
             currentTempUnit = it
             updateUI(currentWeatherData)
-        })
+        }
     }
 }
